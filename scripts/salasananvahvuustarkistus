@@ -1,1 +1,75 @@
+param (
+     [string]$password = "Routa500"
+ )
 
+ function Test-PasswordStrength {
+     param (
+         [string]$password
+     )
+
+     $length = $password.Length
+     $hasUpperCase = $password -cmatch '[A-Z]'
+     $hasLowerCase = $password -cmatch '[a-z]'
+     $hasDigit = $password -cmatch '\d'
+     $hasSpecialChar = $password -cmatch '[^a-zA-Z0-9]'
+
+     $strength = 0
+     $strengthTips = @()
+     $suggestedPasswords = @()
+
+     if ($length -ge 8) {
+         $strength++
+     } else {
+         $strengthTips += "Lisää pituutta (vähintään 8 merkkiä)."
+         $suggestedPasswords += $password + "123"
+     }
+     if ($hasUpperCase) {
+         $strength++
+     } else {
+         $strengthTips += "Lisää isoja kirjaimia."
+         $suggestedPasswords += $password + "A"
+     }
+     if ($hasLowerCase) {
+         $strength++
+     } else {
+         $strengthTips += "Lisää pieniä kirjaimia."
+         $suggestedPasswords += $password + "a"
+     }
+     if ($hasDigit) {
+         $strength++
+     } else {
+         $strengthTips += "Lisää numeroita."
+         $suggestedPasswords += $password + "1"
+     }
+     if ($hasSpecialChar) {
+         $strength++
+     } else {
+         $strengthTips += "Lisää erikoismerkkejä (esim. !, @, #, $)."
+         $suggestedPasswords += $password + "!"
+     }
+
+     switch ($strength) {
+         5 { $strengthMessage = "Erittäin vahva" }
+         4 { $strengthMessage = "Vahva" }
+         3 { $strengthMessage = "Kohtalainen" }
+         2 { $strengthMessage = "Heikko" }
+         default { $strengthMessage = "Erittäin heikko" }
+     }
+
+     return @{
+         Password = $password
+         Strength = $strengthMessage
+         Tips = $strengthTips
+         Suggestions = $suggestedPasswords
+     }
+ }
+
+ $result = Test-PasswordStrength -password $password
+
+ Write-Output "Salasanan vahvuus: $($result.Strength)"
+ if ($result.Tips.Count -gt 0) {
+     Write-Output "Vinkkejä salasanan parantamiseksi:"
+     $result.Tips | ForEach-Object { Write-Output "- $_" }
+     Write-Output "Ehdotettuja vahvempia salasanoja:"
+     $result.Suggestions | ForEach-Object { Write-Output "- $_" }
+ }
